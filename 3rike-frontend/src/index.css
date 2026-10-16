@@ -5,6 +5,7 @@
 
 @theme inline {
   --font-hepta: "Hepta Slab", serif;
+  --font-jakarta: "Plus Jakarta Sans", sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -199,4 +200,20 @@
 
 .hover-pause:hover {
   animation-play-state: paused;
+}
+
+/* For Drivers step countdown: when it ends, the next step is shown */
+@keyframes step-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.animate-step-progress {
+  animation: step-progress 4.5s linear forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-step-progress {
+    animation: none;
+  }
 }
