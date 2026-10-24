@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Loader2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PLATE, WEEKLY_PAYMENT, formatUsd } from "@/lib/ownership";
-import Sheet from "./sheet";
+import Sheet from "@/components/bottom-sheet";
 
 type Step = "amount" | "confirm" | "processing" | "done";
 

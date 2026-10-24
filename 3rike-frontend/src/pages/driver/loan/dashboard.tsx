@@ -234,7 +234,7 @@ export default function LoanDashboard() {
                                                     <div
                                                         key={item.val}
                                                         onClick={() => field.onChange(item.val)}
-                                                        className={`
+                                                        className={`cursor-pointer 
                                 relative cursor-pointer rounded-xl py-4 flex flex-col items-center justify-center transition-all border
                                 ${isSelected
                                                                 ? "bg-[#FDF5EA] border-[#EE9C2E] border-dashed border shadow-sm"

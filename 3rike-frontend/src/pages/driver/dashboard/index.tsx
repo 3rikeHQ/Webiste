@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowUpRight,
   Plus,
@@ -14,20 +14,22 @@ import {
 } from "lucide-react";
 import DepositModal from "../deposit";
 import WithdrawOptions from "../withdraw/options";
+import KycStatusSheet from "./kyc-status-sheet";
 import {
-  VERIFICATION_STAGES,
   getVerificationStatus,
   setVerificationStatus as saveVerificationStatus,
   type VerificationStatus,
 } from "@/lib/ownership";
 
-// How long "Verification in Progress" shows before the card moves on.
-const REVIEW_MS = 3000;
-
 export default function DriverDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [changeCurrency, setChangeCurrency] = useState(true);
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>(getVerificationStatus);
+  // Sent here from a 3rike page while KYC is still under review
+  const [isKycSheetOpen, setIsKycSheetOpen] = useState(
+    () => location.state?.kycPending === true && getVerificationStatus() === "in_progress"
+  );
 
   // State to control the modals
   const [isDepositOpen, setIsDepositOpen] = useState(false);
@@ -39,16 +41,11 @@ export default function DriverDashboard() {
     setVerificationStatus(status);
   };
 
-  // Mock review: once KYC is submitted, approve it after a short beat so the
-  // card can move on to "Own a 3rike".
-  useEffect(() => {
-    if (verificationStatus !== "in_progress") return;
-    const timer = setTimeout(() => {
-      saveVerificationStatus("approved");
-      setVerificationStatus("approved");
-    }, REVIEW_MS);
-    return () => clearTimeout(timer);
-  }, [verificationStatus]);
+  const closeKycSheet = () => {
+    setIsKycSheetOpen(false);
+    // Drop kycPending so a reload doesn't reopen the sheet
+    if (location.state) navigate(location.pathname, { replace: true });
+  };
 
   const handleLoan = () => {
     navigate('/driver/loan')
@@ -61,6 +58,10 @@ export default function DriverDashboard() {
     navigate('/driver/investment')
   };
   const handleVerification = () => {
+    if (verificationStatus === "in_progress") {
+      setIsKycSheetOpen(true);
+      return;
+    }
     if (verificationStatus === "approved") {
       navigate('/driver/own-3rike')
       return;
@@ -88,16 +89,19 @@ export default function DriverDashboard() {
 
         {/* Header Profile */}
         <div className="px-6 flex items-center justify-between pt-6 mb-4">
-          <div className="flex items-center gap-3 bg-white rounded-full">
+          <button
+            type="button"
+            onClick={handleSettings}
+            aria-label="Open profile and settings"
+            className="group flex items-center gap-3 -ml-1.5 py-1 pl-1.5 pr-3 rounded-full bg-white hover:bg-[#F3F5F9] active:scale-[0.98] transition-all"
+          >
             {/* Replace with actual user image */}
-            <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border-2 border-white">
-              <img src="/profile.png" alt="User" />
+            <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border-2 border-white ring-2 ring-transparent group-hover:ring-[#01C259]/40 transition-shadow">
+              <img src="/profile.png" alt="" />
             </div>
-            <span className="font-light text-sm -mr-5">Welcome, Effiong Musa</span>
-            <Button variant="link">
-              <img src="arrow.svg" alt="Arrow" className="w-5 h-5" />
-            </Button>
-          </div>
+            <span className="font-light text-sm">Welcome, Effiong Musa</span>
+            <img src="arrow.svg" alt="" className="w-5 h-5 transition-transform group-hover:translate-x-0.5" />
+          </button>
         </div>
 
         {/* Main Content Scroll Area */}
@@ -180,18 +184,6 @@ export default function DriverDashboard() {
             </div>
           </div>
 
-          {/* to simulate the KYC card stages */}
-          <button
-            type="button"
-            onClick={() =>
-              updateVerificationStatus(
-                VERIFICATION_STAGES[(VERIFICATION_STAGES.indexOf(verificationStatus) + 1) % VERIFICATION_STAGES.length]
-              )
-            }
-            className="ml-2 text-xs text-[#1B8036] underline hover:[#1B8036] bg-transparent border-none cursor-pointer"
-          >
-            (Simulate next step)
-          </button>
           {/* 3. VERIFICATION BANNER: KYC → in progress → own a 3rike → my future 3rike */}
           <div key={verificationStatus} className="animate-in fade-in zoom-in-95 duration-500">
             {verificationStatus === "3riker" ? (
@@ -291,6 +283,12 @@ export default function DriverDashboard() {
                     {verificationStatus === "not_started" && "Complete Kyc and be eligible."}
                     {verificationStatus === "in_progress" && "Details received. We’ll be in touch soon."}
                   </p>
+                  {verificationStatus === "in_progress" && (
+                    <span className="inline-flex items-center gap-1.5 mt-2 rounded-full bg-white/15 px-2.5 py-1 text-xs font-medium text-[#D5FF19] backdrop-blur-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#D5FF19] animate-pulse" />
+                      Tap to check status
+                    </span>
+                  )}
                 </div>
 
                 <div className="absolute bottom-4 right-4 z-10 w-8 h-8 bg-[#00C258] rounded-full flex items-center justify-center shadow-lg">
@@ -303,13 +301,10 @@ export default function DriverDashboard() {
                   </Button>
                 </div>
 
-                {/* Review progress */}
+                {/* Under review */}
                 {verificationStatus === "in_progress" && (
-                  <span className="absolute inset-x-0 bottom-0 z-10 h-1 bg-white/20">
-                    <span
-                      className="absolute inset-0 origin-left bg-[#D5FF19]"
-                      style={{ animation: `step-progress ${REVIEW_MS}ms linear forwards` }}
-                    />
+                  <span className="absolute inset-x-0 bottom-0 z-10 h-1 bg-white/20 overflow-hidden">
+                    <span className="absolute inset-y-0 left-0 w-2/5 rounded-full bg-[#D5FF19] animate-review-sweep" />
                   </span>
                 )}
               </div>
@@ -319,7 +314,7 @@ export default function DriverDashboard() {
           {/* 4. BOTTOM GRID MENU */}
           <div className="grid grid-cols-2 gap-4">
             {/* Savings */}
-            <div onClick={handleSavings} className="bg-white border-3 border-dashed border-gray-100 rounded-2xl p-4 flex flex-col  gap-2 ">
+            <div onClick={handleSavings} className="cursor-pointer bg-white border-3 border-dashed border-gray-100 rounded-2xl p-4 flex flex-col  gap-2 ">
               <div className="w-5 h-5 bg-white/20 rounded-lg flex items-center justify-center mb-2 backdrop-blur-md">
                 <img
                   src="/piggy.svg"
@@ -331,7 +326,7 @@ export default function DriverDashboard() {
             </div>
 
             {/* Investment */}
-            <div onClick={handleInvestment} className="bg-white border-3 border-dashed border-gray-100 rounded-2xl p-4 flex flex-col gap-2 ">
+            <div onClick={handleInvestment} className="cursor-pointer bg-white border-3 border-dashed border-gray-100 rounded-2xl p-4 flex flex-col gap-2 ">
               <div className="w-5 h-5 bg-white/20 rounded-lg flex items-center justify-center mb-2 backdrop-blur-md">
                 <img
                   src="/invest.svg"
@@ -355,7 +350,7 @@ export default function DriverDashboard() {
             </div>
 
             {/* Loan */}
-            <div onClick={handleLoan} className="bg-white border-3 border-dashed border-gray-100 rounded-2xl p-4 flex flex-col gap-2 ">
+            <div onClick={handleLoan} className="cursor-pointer bg-white border-3 border-dashed border-gray-100 rounded-2xl p-4 flex flex-col gap-2 ">
               <div className="w-5 h-5 bg-white/20 rounded-lg flex items-center justify-center mb-2 backdrop-blur-md">
                 <img
                   src="/loan.svg"
@@ -409,12 +404,13 @@ export default function DriverDashboard() {
             variant="link"
             size="icon"
             onClick={() => setIsMenuOpen(true)} // Open modal on click
-            className="hover:bg-transparent w-full h-full text-gray-400"
+            aria-label="Open quick actions"
+            className="hover:bg-transparent w-15 h-15 p-0 text-gray-400 transition-transform active:scale-95"
           >
             <img
               src="/add.svg"
-              alt="add"
-              className="ml-25 w-15 h-15"
+              alt=""
+              className="w-15 h-15"
             />
           </Button>
         </div>
@@ -472,6 +468,16 @@ export default function DriverDashboard() {
         isOpen={isWithdrawOpen}
         onClose={() => setIsWithdrawOpen(false)}
       />
+
+      {isKycSheetOpen && (
+        <KycStatusSheet
+          onClose={closeKycSheet}
+          onApproved={() => {
+            updateVerificationStatus("approved");
+            closeKycSheet();
+          }}
+        />
+      )}
     </div>
   );
 }

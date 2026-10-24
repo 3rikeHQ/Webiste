@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
     Form,
     FormControl,
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, UploadCloud, CheckCircle2, AlertCircle } from "lucide-react";
+import { CalendarIcon, UploadCloud, CheckCircle2, AlertCircle, ShieldCheck } from "lucide-react";
 import React from "react";
 
 // --- VALIDATION SCHEMAS ---
@@ -46,6 +46,8 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function VerifyAccountForm() {
     const [currentStep, setCurrentStep] = useState(1);
+    // Sent here from a 3rike or investment screen before doing KYC
+    const kycRequired = useLocation().state?.kycRequired === true;
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [open, setOpen] = React.useState(false);
@@ -256,6 +258,20 @@ export default function VerifyAccountForm() {
 
                     <span className="text-gray-400 font-medium text-sm">{currentStep}/3</span>
                 </div>
+
+                {kycRequired && currentStep === 1 && (
+                    <div role="status" className="flex gap-3 rounded-2xl bg-[#E9F8EE] p-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-500">
+                        <span className="w-9 h-9 shrink-0 rounded-xl bg-[#01C259] flex items-center justify-center">
+                            <ShieldCheck className="w-5 h-5 text-white" />
+                        </span>
+                        <div>
+                            <p className="text-sm font-medium text-[#1B8036]">KYC comes first</p>
+                            <p className="text-xs text-[#4B6B55] mt-0.5">
+                                Verify your identity to own a 3rike or invest. It takes about 3 minutes.
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 flex flex-col gap-5">

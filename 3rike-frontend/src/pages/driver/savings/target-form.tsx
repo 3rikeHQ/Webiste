@@ -366,7 +366,7 @@ export default function SavingsTargetForm() {
                                             <FormItem className="space-y-4">
                                                 {/* Automatically */}
                                                 <div>
-                                                    <div onClick={() => field.onChange("automatic")} className={`relative flex items-center justify-between p-4 rounded-xl cursor-pointer h-14 transition-colors ${field.value === "automatic" ? "bg-[#E8ECE9] border border-gray-300" : "bg-[#E8ECE9] border border-transparent"}`}>
+                                                    <div onClick={() => field.onChange("automatic")} className={`cursor-pointer relative flex items-center justify-between p-4 rounded-xl cursor-pointer h-14 transition-colors ${field.value === "automatic" ? "bg-[#E8ECE9] border border-gray-300" : "bg-[#E8ECE9] border border-transparent"}`}>
                                                         <span className="text-sm text-gray-900 font-normal">Automatically</span>
                                                         <div className={`w-6 h-6 rounded-full border flex items-center justify-center bg-white ${field.value === "automatic" ? "border-green-500" : "border-gray-500"}`}>
                                                             {field.value === "automatic" && <div className="w-3 h-3 bg-[#01C259] rounded-full" />}
@@ -387,7 +387,7 @@ export default function SavingsTargetForm() {
 
                                                 {/* Manually */}
                                                 <div>
-                                                    <div onClick={() => field.onChange("manual")} className={`relative flex items-center justify-between p-4 rounded-xl cursor-pointer h-14 transition-colors ${field.value === "manual" ? "bg-[#E8ECE9] border border-gray-300" : "bg-[#E8ECE9] border border-transparent"}`}>
+                                                    <div onClick={() => field.onChange("manual")} className={`cursor-pointer relative flex items-center justify-between p-4 rounded-xl cursor-pointer h-14 transition-colors ${field.value === "manual" ? "bg-[#E8ECE9] border border-gray-300" : "bg-[#E8ECE9] border border-transparent"}`}>
                                                         <span className="text-sm text-gray-900 font-normal">Manually</span>
                                                         <div className={`w-6 h-6 rounded-full border flex items-center justify-center bg-white ${field.value === "manual" ? "border-green-500" : "border-gray-500"}`}>
                                                             {field.value === "manual" && <div className="w-3 h-3 bg-[#01C259] rounded-full" />}

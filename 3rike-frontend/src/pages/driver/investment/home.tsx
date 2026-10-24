@@ -5,11 +5,16 @@ import {
     Minus,
     Plus,
     PieChart,
+    ShieldCheck,
+    Hourglass,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from "react-router-dom";
+import Sheet from "@/components/bottom-sheet";
+import { getVerificationStatus } from "@/lib/ownership";
+import FleetGallery from "./fleet-gallery";
 // --- Types & Mock Data ---
 
 type Transaction = {
@@ -55,6 +60,8 @@ export default function InvestmentApp() {
 
     // 3. View State (Success Screen)
     const [showSuccess, setShowSuccess] = useState(false);
+    // KYC must be approved before buying; holds the blocking status while its sheet is open
+    const [kycGate, setKycGate] = useState<'not_started' | 'in_progress' | null>(null);
 
     // Derived Purchase Data
     const currentPurchaseMode = isPurchaseFleetMode ? 'fleet' : 'share';
@@ -70,13 +77,18 @@ export default function InvestmentApp() {
     };
 
     const handlePurchase = () => {
+        const status = getVerificationStatus();
+        if (status === 'not_started' || status === 'in_progress') {
+            setKycGate(status);
+            return;
+        }
         setShowSuccess(true);
     };
 
     // --- Success Screen View ---
     if (showSuccess) {
         return (
-            <div className="min-h-screenflex justify-center items-center p-4">
+            <div className="min-h-screen flex justify-center items-center p-4">
                 <div className="w-full max-w-md bg-white rounded-[30px] overflow-hidden min-h-200 flex flex-col items-center justify-center p-8 text-center relative">
                     <div className="mb-6">
                         {/* Placeholder for Success Icon */}
@@ -102,7 +114,7 @@ export default function InvestmentApp() {
 
     // --- Main Dashboard View ---
     return (
-        <div className="min-h-screenflex justify-center items-center p-2">
+        <div className="min-h-screen flex justify-center items-center p-2">
             <div className="w-full bg-white rounded-[30px] overflow-hidden min-h-212.5 flex flex-col relative">
 
                 {/* --- Top Header Navigation --- */}
@@ -146,24 +158,8 @@ export default function InvestmentApp() {
                 {/* --- Scrollable Content Content --- */}
                 <div className="flex-1 flex flex-col px-6 pb-8 overflow-y-auto">
 
-                    {/* Static Image Section (Visible on all tabs) */}
-                    <div className="mt-4 mb-6 relative bg-white rounded-3xl overflow-hidden aspect-square flex items-center justify-center">
-                        <img
-                            src="/yellow-tricycle.svg"
-                            alt="Yellow Tricycle"
-                            className="object-contain w-full h-full scale-100 "
-                        />
-                    </div>
-
-                    {/* Static Thumbnails (Visible on all tabs) */}
-                    <div className="flex gap-4 mb-8">
-                        <div className="border-2 border-transparent rounded-xl overflow-hidden w-16 h-16 bg-white  p-1">
-                            <img src="/small-tricycle.svg" className="w-full h-full object-contain" alt="thumb1" />
-                        </div>
-                        <div className="border-2 border-transparent rounded-xl overflow-hidden w-16 h-16 bg-white  p-1">
-                            <img src="/small-tricycle2.svg" className="w-full h-full object-contain" alt="thumb2" />
-                        </div>
-                    </div>
+                    {/* Fleet photos (Visible on all tabs) */}
+                    <FleetGallery />
 
                     {/* --- CONDITIONAL CONTENT RENDER --- */}
 
@@ -280,6 +276,43 @@ export default function InvestmentApp() {
                     )}
                 </div>
             </div>
+
+            {kycGate && (
+                <Sheet label="KYC required" onClose={() => setKycGate(null)}>
+                    <div className="flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-300">
+                        <span className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-5 ${kycGate === 'not_started' ? 'bg-[#E9F8EE]' : 'bg-[#FFF7EC]'}`}>
+                            {kycGate === 'not_started'
+                                ? <ShieldCheck className="w-8 h-8 text-[#01C259]" />
+                                : <Hourglass className="w-8 h-8 text-[#EE9C2E]" />}
+                        </span>
+                        <h3 className="text-xl font-bold text-gray-900">
+                            {kycGate === 'not_started' ? 'Verify your identity to invest' : 'Your KYC is under review'}
+                        </h3>
+                        <p className="text-sm text-[#909090] mt-2 max-w-72">
+                            {kycGate === 'not_started'
+                                ? `KYC is required before you buy ${purchaseQuantity} ${isPurchaseFleetMode ? 'fleets' : 'shares'}. It takes about 3 minutes.`
+                                : "You can invest as soon as you're approved. Check your status on the home screen."}
+                        </p>
+                        <Button
+                            onClick={() =>
+                                kycGate === 'not_started'
+                                    ? navigate('/driver/verification', { state: { kycRequired: true } })
+                                    : navigate('/driver', { state: { kycPending: true } })
+                            }
+                            className="mt-8 w-full h-14 rounded-xl bg-[#01C259] hover:bg-[#00a049] text-white text-base font-medium"
+                        >
+                            {kycGate === 'not_started' ? 'Start KYC' : 'Check status'}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={() => setKycGate(null)}
+                            className="mt-2 w-full h-12 rounded-xl text-gray-500"
+                        >
+                            Not now
+                        </Button>
+                    </div>
+                </Sheet>
+            )}
         </div>
     );
 }

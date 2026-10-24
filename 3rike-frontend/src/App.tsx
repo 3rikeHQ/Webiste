@@ -2,6 +2,7 @@ import "./App.css";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Layout from "@/components/ui/layout";
 import MobileLayout from "@/components/ui/mobile-layout";
+import RequireStage from "@/components/require-stage";
 import { CreateAccountForm, ForgotPasswordEmailForm, ForgotPasswordPhoneForm, Landing, LoginForm, NoMatch, Onboarding, DriverDashboard, VerifyAccountForm, VerificationSuccess, VerificationFailed, VerificationFailedForm, LoanDashboard, LoanRequestSuccess, LoanNotification, SavingsOnboarding, SavingsDashboard, Loan, Savings, Verification, SavingsTargetDashboard, SavingsTargetForm, SavingsSummary, SavingsNotification, SavingsTargetSuccess, AiDashboard, DriverNotification, Withdraw, SetPinWithdraw, WithdrawBankDetails, WithdrawSendMoney, Settings, SettingsHome, SettingsProfile, PaymentSettings, ChangePaymentPin, WithdrawCryptoAsset, Investment, InvestmentHome, InvestorWaitlist, InvestorBrief, Own3rike, Own3rikeDetails, Welcome3riker, ThreeDetails } from "./pages";
 import SelectCryptoAsset from "./pages/driver/withdraw/crypto/select-crypto";
 
@@ -9,7 +10,7 @@ import SelectCryptoAsset from "./pages/driver/withdraw/crypto/select-crypto";
 function App() {
   return (
     <BrowserRouter>
-      <div style={{ fontFamily: "Geist" }}>
+      <div style={{ fontFamily: "Geist, ui-sans-serif, system-ui, sans-serif" }}>
         <Routes>
 
           {/* Marketing pages keep their desktop layouts */}
@@ -77,11 +78,11 @@ function App() {
             </Route>
 
             {/* Own a 3rike routes */}
-            <Route path="own-3rike" element={<Own3rike />}>
+            <Route path="own-3rike" element={<RequireStage stage="approved"><Own3rike /></RequireStage>}>
               <Route index element={<Own3rikeDetails />} />
               <Route path="welcome" element={<Welcome3riker />} />
             </Route>
-            <Route path="3rike-details" element={<ThreeDetails />} />
+            <Route path="3rike-details" element={<RequireStage stage="3riker"><ThreeDetails /></RequireStage>} />
 
             {/* Settings route */}
             <Route path="settings" element={<Settings />}>

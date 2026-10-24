@@ -28,7 +28,7 @@ const Hero = () => {
         <div className="flex flex-col sm:flex-row gap-3 md:gap-4 mt-8 md:mt-10 justify-center px-0 md:px-4 animate-[fade-in_0.8s_ease-out_1s_both]">
           <button
             type="button"
-            onClick={() => navigate("/create-account-rider")}
+            onClick={() => navigate("/onboarding")}
             className="bg-[#829E04] text-white rounded-xm py-3 md:py-4 px-8 md:px-10 text-base md:text-lg font-medium cursor-pointer hover:bg-[#6f8703] transition-colors"
           >
             Join as a 3riker

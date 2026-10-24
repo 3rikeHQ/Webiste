@@ -10,7 +10,7 @@ import {
   type AutoPay,
   type Weekday,
 } from "@/lib/ownership";
-import Sheet from "./sheet";
+import Sheet from "@/components/bottom-sheet";
 
 type View = "setup" | "manage" | "done";
 

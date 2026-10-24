@@ -28,7 +28,7 @@ export default function WithdrawOptions({ isOpen, onClose }: WithdrawOptionsProp
             {/* Backdrop */}
             <div
                 onClick={onClose}
-                className={`
+                className={`cursor-pointer 
                     absolute inset-0 bg-[#F5F5F5E5] backdrop-blur-sm transition-opacity duration-300
                     ${isOpen ? "opacity-100" : "opacity-0"}
                 `}

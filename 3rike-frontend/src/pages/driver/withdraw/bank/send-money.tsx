@@ -250,7 +250,7 @@ export default function WithdrawSendMoney() {
                         </div>
 
                         {/* Footer Action */}
-                        <div onClick={handleSendToOther} className="w-full mt-6">
+                        <div onClick={handleSendToOther} className="cursor-pointer w-full mt-6">
                             <div className="w-full flex justify-end pb-2 cursor-pointer transition-colors group">
                                 <span className="text-gray-400 underline text-sm group-hover:text-gray-600">
                                     Send to Another Account
@@ -302,7 +302,7 @@ export default function WithdrawSendMoney() {
                         </div>
 
                         {/* Add New Button */}
-                        <div onClick={handleSendToOther} className="w-full mt-6">
+                        <div onClick={handleSendToOther} className="cursor-pointer w-full mt-6">
                             <Button className="bg-[#F0F2F5] hover:bg-[#E4E7EB] text-black w-full py-7 font-normal rounded-2xl flex gap-2 shadow-none border border-gray-100">
                                 <img src="/add_account.svg" alt="" className="w-5 h-5 opacity-60" />
                                 Add New Account

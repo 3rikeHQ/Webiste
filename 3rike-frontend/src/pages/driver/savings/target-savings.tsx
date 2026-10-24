@@ -176,7 +176,7 @@ export default function SavingsTargetDashboard() {
                                 {showData ? (
                                     // SHOW LIST
                                     completedTargets.map((target) => (
-                                        <div key={target.id} onClick={() => handleSummary(target)} className="relative bg-[#F9F8FF] border border-dashed border-[#9747FF] rounded-2xl p-4">
+                                        <div key={target.id} onClick={() => handleSummary(target)} className="cursor-pointer relative bg-[#F9F8FF] border border-dashed border-[#9747FF] rounded-2xl p-4">
                                             <div className="absolute -top-3 right-4 bg-[#E0F8E9] text-[#22C55E] text-[10px] px-3 py-1 rounded-full font-medium">
                                                 Completed
                                             </div>
