@@ -18,6 +18,7 @@ import warning from "@/assets/warning.svg";
 import { useState } from "react";
 import { EyeClosed, EyeIcon } from "lucide-react";
 import { PinInput } from "@/components/ui/pinInput";
+import { register, setToken } from "@/lib/api";
 // import Swal from "sweetalert2";
 // import axios from "axios";
 
@@ -43,7 +44,8 @@ const formSchema = z.object({
 export default function CreateAccountForm() {
     const [currentTab, setCurrentTab] = useState(0);
     const navigate = useNavigate();
-    const [loading, ] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [apiError, setApiError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [showPin, setShowPin] = useState(false);
 
@@ -107,8 +109,24 @@ export default function CreateAccountForm() {
 
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
-        console.log("Submitted Data:", data);
-        navigate("/driver");
+        setLoading(true);
+        setApiError(null);
+        try {
+            const res = await register({
+                firstName: data.firstName,
+                lastName: data.lastName,
+                phone: data.phone,
+                email: data.email || undefined,
+                password: data.password,
+                pin: data.pin,
+            });
+            setToken(res.token);
+            navigate("/driver");
+        } catch (e) {
+            setApiError(e instanceof Error ? e.message : "Something went wrong");
+        } finally {
+            setLoading(false);
+        }
     };
 
 
@@ -381,6 +399,10 @@ export default function CreateAccountForm() {
                                     </div>
                                 </div>
 
+
+                                {apiError && (
+                                    <p className="text-sm text-[#EC1111]" role="alert">{apiError}</p>
+                                )}
 
                                 <Button
                                     className={`
