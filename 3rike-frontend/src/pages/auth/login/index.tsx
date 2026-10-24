@@ -16,6 +16,7 @@ import { useState } from "react";
 import { EyeClosed, EyeIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { login, setToken } from "@/lib/api";
+import { hydrateVerificationStatus, type VerificationStatus } from "@/lib/ownership";
 
 const formSchema = z.object({
     identifier: z.string().min(1, { message: "Enter your phone number or email" }),
@@ -56,6 +57,7 @@ export default function LoginForm() {
         try {
             const res = await login(data.identifier, data.password);
             setToken(res.token);
+            hydrateVerificationStatus(res.user.verificationStatus as VerificationStatus);
             navigate("/driver");
         } catch (e) {
             setApiError(e instanceof Error ? e.message : "Something went wrong");

@@ -19,6 +19,7 @@ import { useState } from "react";
 import { EyeClosed, EyeIcon } from "lucide-react";
 import { PinInput } from "@/components/ui/pinInput";
 import { register, setToken } from "@/lib/api";
+import { hydrateVerificationStatus, type VerificationStatus } from "@/lib/ownership";
 // import Swal from "sweetalert2";
 // import axios from "axios";
 
@@ -121,6 +122,7 @@ export default function CreateAccountForm() {
                 pin: data.pin,
             });
             setToken(res.token);
+            hydrateVerificationStatus(res.user.verificationStatus as VerificationStatus);
             navigate("/driver");
         } catch (e) {
             setApiError(e instanceof Error ? e.message : "Something went wrong");

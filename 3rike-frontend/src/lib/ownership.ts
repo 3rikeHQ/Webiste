@@ -1,6 +1,7 @@
-// Mock "own a 3rike" state for the driver app. There is no backend in this
-// repo, so the KYC stage, main account balance, 3rike payments and Auto-Pay
-// schedule all live in localStorage.
+// "Own a 3rike" state for the driver app. Money (balance, payments, Auto-Pay)
+// now lives in the backend; the KYC stage is cached here and synced to the API.
+
+import { setVerificationStatus as syncVerificationStatus } from "./api";
 
 export type VerificationStatus = "not_started" | "in_progress" | "approved" | "3riker";
 
@@ -54,6 +55,11 @@ export function getVerificationStatus(): VerificationStatus {
 }
 
 export function setVerificationStatus(status: VerificationStatus) {
+  localStorage.setItem(STATUS_KEY, status);
+  void syncVerificationStatus(status).catch(() => {});
+}
+
+export function hydrateVerificationStatus(status: VerificationStatus) {
   localStorage.setItem(STATUS_KEY, status);
 }
 

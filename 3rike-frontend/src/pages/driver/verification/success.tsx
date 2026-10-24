@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button"; // Optional, in case you want to add a button later
+import { setVerificationStatus } from "@/lib/ownership";
 
 // type VerificationStatus = "not_started" | "in_progress" | "approved";
 
@@ -7,7 +8,7 @@ export default function VerificationSuccess() {
   const navigate = useNavigate();
 
   const goToDashboard = () => {
-    localStorage.setItem("verificationStatus", "in_progress");
+    setVerificationStatus("in_progress");
     navigate("/driver");
   };
 

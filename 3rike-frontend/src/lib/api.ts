@@ -96,6 +96,14 @@ export function setWithdrawalPin(pin: string) {
   return request<{ ok: boolean }>("/api/me/pin", { body: { pin } });
 }
 
+export function setVerificationStatus(status: string) {
+  return request<{ status: string }>("/api/verification", { body: { status } });
+}
+
+export function getVerificationStatus() {
+  return request<{ status: string }>("/api/verification");
+}
+
 export function getBalance() {
   return request<{ balance: number; usdc: number }>("/api/balance");
 }

@@ -26,6 +26,8 @@ import * as store from "./store.js";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
+const VERIFICATION_STAGES = ["not_started", "in_progress", "approved", "3riker"];
+
 async function settleAutopayFor(userId) {
   await withTransaction((client) => store.settleDueAutoPay(client, userId));
 }
@@ -128,6 +130,17 @@ async function submitVerification(ctx) {
     [userId]
   );
   return json({ status: "in_progress" });
+}
+
+async function setVerification(ctx) {
+  const userId = userIdFromRequest(ctx.request);
+  const { status } = ctx.body;
+  require(VERIFICATION_STAGES.includes(status), "Invalid status");
+  await pool.query(
+    `UPDATE users SET verification_status = $2 WHERE id = $1`,
+    [userId, status]
+  );
+  return json({ status });
 }
 
 async function approveVerification(ctx) {
@@ -334,6 +347,7 @@ const ROUTES = {
   "GET /api/me": me,
   "POST /api/me/pin": setPin,
   "GET /api/verification": getVerification,
+  "POST /api/verification": setVerification,
   "POST /api/verification/submit": submitVerification,
   "POST /api/verification/approve": approveVerification,
   "GET /api/balance": getBalance,
