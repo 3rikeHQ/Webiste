@@ -12,7 +12,7 @@ export default function DriverNotification() {
     const navigate = useNavigate();
 
     // --- STATE ---
-    const [hasNotifications, _setHasNotifications] = useState(true);
+    const [hasNotifications, _setHasNotifications] = useState(false);
     // 1. New State for the active filter tab
     const [activeFilter, setActiveFilter] = useState("All");
 

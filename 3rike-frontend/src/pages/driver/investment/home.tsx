@@ -43,7 +43,7 @@ const STATS = {
 };
 
 const PRICING = {
-    fleet: { unitPrice: 1400, label: 'Fleets', addLabel: 'Add fleets' },
+    fleet: { unitPrice: 2800, label: 'Fleets', addLabel: 'Add fleets' },
     share: { unitPrice: 56, label: 'Shares', addLabel: 'Add Shares' }
 };
 
@@ -55,7 +55,7 @@ export default function InvestmentApp() {
     const [activeTab, setActiveTab] = useState<'investment' | 'fleets' | 'shares'>('investment');
 
     // 2. Investment/Purchase State
-    const [purchaseQuantity, setPurchaseQuantity] = useState(2);
+    const [purchaseQuantity, setPurchaseQuantity] = useState(1);
     const [isPurchaseFleetMode, setIsPurchaseFleetMode] = useState(true); // Toggle inside Investment tab
 
     // 3. View State (Success Screen)
@@ -67,13 +67,15 @@ export default function InvestmentApp() {
     const currentPurchaseMode = isPurchaseFleetMode ? 'fleet' : 'share';
     const { unitPrice, addLabel } = PRICING[currentPurchaseMode];
     const totalPrice = purchaseQuantity * unitPrice;
+    const unitName = isPurchaseFleetMode ? 'fleet' : 'share';
+    const quantityLabel = `${purchaseQuantity} ${unitName}${purchaseQuantity === 1 ? '' : 's'}`;
 
     // Handlers
     const handleIncrement = () => setPurchaseQuantity((prev) => prev + 1);
     const handleDecrement = () => setPurchaseQuantity((prev) => (prev > 1 ? prev - 1 : 1));
     const togglePurchaseMode = (checked: boolean) => {
         setIsPurchaseFleetMode(checked);
-        setPurchaseQuantity(checked ? 2 : 10); // Auto-adjust quantity for UX
+        setPurchaseQuantity(checked ? 1 : 10); // Auto-adjust quantity for UX
     };
 
     const handlePurchase = () => {
@@ -98,7 +100,7 @@ export default function InvestmentApp() {
                     </div>
                     <h2 className="text-2xl font-extrabold text-black mb-2">Successfully Sent!</h2>
                     <p className="text-gray-400">
-                        {purchaseQuantity} {isPurchaseFleetMode ? 'fleets' : 'shares'} successfully purchased
+                        {quantityLabel} successfully purchased
                     </p>
                     <Button
                         variant="ghost"
@@ -175,6 +177,7 @@ export default function InvestmentApp() {
                                 <div className="flex flex-col items-center">
                                     <span className="text-3xl font-bold text-black">{purchaseQuantity}</span>
                                     <span className="text-xs text-gray-400 uppercase tracking-wide font-medium mt-1">{addLabel}</span>
+                                    <span className="text-[11px] text-[#01C259] font-medium mt-1">${unitPrice.toLocaleString('en-US')} per {unitName}</span>
                                 </div>
 
                                 <Button variant="outline" size="icon" onClick={handleIncrement} className="rounded-full h-10 w-10 border-gray-300 hover:bg-gray-100">
@@ -203,7 +206,7 @@ export default function InvestmentApp() {
                             {/* Purchase Button */}
                             <div className="mt-auto">
                                 <Button onClick={handlePurchase} className="w-full bg-[#00C058] hover:bg-[#00a84d] text-white text-lg  h-14 rounded-xl shadow-lg shadow-green-100">
-                                    Purchase for ${totalPrice}
+                                    Purchase for ${totalPrice.toLocaleString('en-US')}
                                 </Button>
                             </div>
                         </div>
@@ -290,7 +293,7 @@ export default function InvestmentApp() {
                         </h3>
                         <p className="text-sm text-[#909090] mt-2 max-w-72">
                             {kycGate === 'not_started'
-                                ? `KYC is required before you buy ${purchaseQuantity} ${isPurchaseFleetMode ? 'fleets' : 'shares'}. It takes about 3 minutes.`
+                                ? `KYC is required before you buy ${quantityLabel}. It takes about 3 minutes.`
                                 : "You can invest as soon as you're approved. Check your status on the home screen."}
                         </p>
                         <Button

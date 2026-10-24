@@ -12,7 +12,7 @@ export default function LoanNotification() {
 
     // --- TOGGLE STATE FOR DEVELOPMENT ---
     // Change this to false to see your original "Empty" state
-    const [hasNotifications, _setHasNotifications] = useState(true);
+    const [hasNotifications, _setHasNotifications] = useState(false);
 
     // --- MOCK DATA BASED ON YOUR IMAGE ---
     const notificationGroups = [

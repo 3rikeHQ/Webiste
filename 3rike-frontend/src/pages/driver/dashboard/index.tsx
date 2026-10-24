@@ -123,7 +123,7 @@ export default function DriverDashboard() {
 
               <div className="flex flex-row justify-between mb-6">
                 <h1 className="text-4xl font-bold ">
-                  {changeCurrency ? "$ 0.00" : "₵ 0.00"}
+                  {changeCurrency ? "$ 0.00" : "₦ 0.00"}
                 </h1>
 
                 {/* Custom Toggle Switch */}
