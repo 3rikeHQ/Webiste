@@ -22,10 +22,10 @@ export default function SelectCryptoAsset() {
     );
 
     return (
-        <div className="fixed inset-0 bg-gray-500/20 backdrop-blur-sm flex items-end sm:items-center justify-center  z-50">
+        <div className="fixed inset-0 bg-gray-500/20 backdrop-blur-sm flex items-end justify-center  z-50">
             
             {/* Main Card Container */}
-            <div className="w-full h-[85vh] sm:h-auto sm:max-w-md bg-white rounded-t-[32px] sm:rounded-[32px] p-6 flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
+            <div className="w-full h-[85vh] bg-white rounded-t-[32px] p-6 flex flex-col shadow-2xl animate-in slide-in-from-bottom duration-300">
                 
                 {/* Drag Handle */}
                 <div className="w-full flex justify-center mb-8">

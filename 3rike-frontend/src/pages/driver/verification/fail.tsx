@@ -22,7 +22,7 @@ export default function VerificationFailed() {
           Application Failed
         </h1>
 
-        <p className="text-gray-500 leading-relaxed text-sm md:text-base max-w-70">
+        <p className="text-gray-500 leading-relaxed text-sm max-w-70">
           Some documents don’t match. Please review and resubmit, or{" "}
           <Link
             to="/support"

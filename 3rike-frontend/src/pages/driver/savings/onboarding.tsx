@@ -2,17 +2,20 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
+// Illustrations: Microsoft Fluent Emoji 3D (MIT licence), in public/savings.
 const onboardingData = [
     {
-        image: "#",
-        title: "Loans",
-        description: "Grow your credit score and get loans up to GHS 16,000 with easy, flexible repayment.",
+        image: "/savings/target.png",
+        accents: ["/savings/coin.png", "/savings/money-bag.png"],
+        title: "Target Savings",
+        description: "Set a goal like rent, a car or 3rike parts, and save towards it daily or weekly.",
         color: "bg-[#BBE6C3]",
     },
     {
-        image: "#",
-        title: "Retail Investment",
-        description: "Become a 3rike owner with just GHS 600 and start earning weekly.",
+        image: "/savings/lock.png",
+        accents: ["/savings/coin.png", "/savings/chart-up.png"],
+        title: "3triky Lock",
+        description: "Lock your savings away and earn interest until the date you choose.",
         color: "bg-[#7BCD8A]",
     },
 ];
@@ -59,20 +62,39 @@ export default function SavingsOnboarding() {
                 </p>
             </div>
             {/* Image Section */}
-            <div className={`relative w-full h-115.5 rounded-4xl ${screenData.color} mb-6`}>
-                <img
-                    src={screenData.image}
-                    alt="image"
-                    className="absolute bottom-0 left-1/2 -translate-x-1/2"
-                />
+            <div className={`relative w-full h-[min(462px,52dvh)] min-h-60 shrink-0 rounded-4xl ${screenData.color} mb-6 overflow-hidden transition-colors duration-500`}>
+                <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/25" />
+                <div className="absolute -bottom-20 -left-12 w-64 h-64 rounded-full bg-white/20" />
+                <div key={currentScreen} className="absolute inset-0 animate-in fade-in zoom-in-90 duration-500">
+                    <img
+                        src={screenData.image}
+                        alt=""
+                        className="absolute left-1/2 top-1/2 w-[min(12rem,22dvh)] h-[min(12rem,22dvh)] -translate-x-1/2 -translate-y-1/2 drop-shadow-xl"
+                    />
+                    <img
+                        src={screenData.accents[0]}
+                        alt=""
+                        className="absolute right-[14%] top-[16%] w-16 h-16 rotate-12 animate-float drop-shadow-lg"
+                    />
+                    <img
+                        src={screenData.accents[1]}
+                        alt=""
+                        className="absolute left-[12%] bottom-[14%] w-20 h-20 -rotate-6 animate-float [animation-delay:-2s] drop-shadow-lg"
+                    />
+                </div>
+            </div>
+
+            <div key={`text-${currentScreen}`} className="px-3">
+                <h2 className="animate-rise-in text-2xl font-semibold text-gray-900">{screenData.title}</h2>
+                <p className="animate-rise-in [animation-delay:100ms] text-sm text-[#909090] mt-2 max-w-80">
+                    {screenData.description}
+                </p>
             </div>
 
 
 
-            <div className="absolute bottom-0 right-25 -translate-x-1/2">
-
-                {/* Footer */}
-                <div className="absolute bottom-0 left-8 -translate-x-1/2 mb-10">
+            {/* Footer: stays in the flow so it never covers the text on short screens */}
+            <div className="mt-auto flex justify-end px-3 pt-4 pb-6">
                     <Button
                         variant="link"
                         onClick={() => {
@@ -91,8 +113,6 @@ export default function SavingsOnboarding() {
                             className="w-5 h-5"
                         />
                     </Button>
-                </div>
-
             </div>
 
         </div>

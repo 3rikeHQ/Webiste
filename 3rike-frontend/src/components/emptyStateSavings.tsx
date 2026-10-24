@@ -26,7 +26,7 @@ export default function EmptyState({
         {title}
       </h1>
 
-      <div className="text-gray-500 leading-relaxed text-sm md:text-base max-w-70">
+      <div className="text-gray-500 leading-relaxed text-sm max-w-70">
         {description}
       </div>
     </div>

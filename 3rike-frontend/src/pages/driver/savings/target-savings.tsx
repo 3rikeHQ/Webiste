@@ -3,6 +3,14 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+// 3D icon for a target, picked from its title.
+const targetIcon = (title: string) => {
+    const t = title.toLowerCase();
+    if (t.includes("rent") || t.includes("house")) return "/savings/house.png";
+    if (t.includes("car")) return "/savings/car.png";
+    return "/savings/target.png";
+};
+
 export default function SavingsTargetDashboard() {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<"ongoing" | "completed">("ongoing");
@@ -66,13 +74,16 @@ export default function SavingsTargetDashboard() {
                 {/* --- Scrollable Content --- */}
                 <div className="px-6 space-y-6 flex-1 overflow-y-auto pb-32">
 
-                    {/* Gray Placeholder Card */}
-                    <div className={`relative w-full h-80 rounded-4xl bg-[#F3F5F9] mb-6`}>
-                        <img
-                            src="/graybackground.svg"
-                            alt="image"
-                            className="absolute pt-5 top-0 left-1/2 -translate-x-1/2"
-                        />
+                    {/* Illustration card (Fluent Emoji 3D, MIT) */}
+                    <div className={`relative w-full h-80 rounded-4xl bg-[#F3F5F9] mb-6 p-5`}>
+                        <div className="relative h-56 rounded-2xl bg-white overflow-hidden">
+                            <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-[#F0EEFA]" />
+                            <div className="absolute -bottom-14 -left-10 w-44 h-44 rounded-full bg-[#E9F8EE]" />
+                            <img src="/savings/target.png" alt="" className="absolute left-1/2 top-1/2 w-32 h-32 -translate-x-1/2 -translate-y-1/2 drop-shadow-lg" />
+                            <img src="/savings/money-bag.png" alt="" className="absolute left-[10%] bottom-[10%] w-16 h-16 -rotate-6 animate-float drop-shadow-md" />
+                            <img src="/savings/calendar.png" alt="" className="absolute right-[10%] top-[12%] w-14 h-14 rotate-6 animate-float [animation-delay:-2s] drop-shadow-md" />
+                            <img src="/savings/coin.png" alt="" className="absolute right-[16%] bottom-[14%] w-10 h-10 animate-float [animation-delay:-1s] drop-shadow-md" />
+                        </div>
                     </div>
 
                     {/* Info Box (Dashed Purple) */}
@@ -126,7 +137,9 @@ export default function SavingsTargetDashboard() {
                                     completedTargets.map((target) => (
                                         <div key={target.id} className="relative bg-[#F9F8FF] border border-dashed border-[#9747FF] rounded-2xl p-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-14 h-14 bg-white rounded-lg shadow-sm shrink-0"></div>
+                                                <div className="w-14 h-14 bg-white rounded-lg shadow-sm shrink-0 flex items-center justify-center">
+                                                    <img src={targetIcon(target.title)} alt="" className="w-10 h-10" />
+                                                </div>
                                                 <div className="flex-1 grid grid-cols-4 items-center text-center">
                                                     <div className="col-span-1 text-left">
                                                         <span className="text-[#9747FF] font-medium text-sm">{target.title}</span>
@@ -168,7 +181,9 @@ export default function SavingsTargetDashboard() {
                                                 Completed
                                             </div>
                                             <div className="flex items-center gap-4">
-                                                <div className="w-14 h-14 bg-white rounded-lg shadow-sm shrink-0"></div>
+                                                <div className="w-14 h-14 bg-white rounded-lg shadow-sm shrink-0 flex items-center justify-center">
+                                                    <img src={targetIcon(target.title)} alt="" className="w-10 h-10" />
+                                                </div>
                                                 <div className="flex-1 grid grid-cols-4 items-center text-center">
                                                     <div className="col-span-1 text-left">
                                                         <span className="text-[#9747FF] font-medium text-sm">{target.title}</span>

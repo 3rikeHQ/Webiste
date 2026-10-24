@@ -14,29 +14,41 @@ import {
 } from "lucide-react";
 import DepositModal from "../deposit";
 import WithdrawOptions from "../withdraw/options";
+import {
+  VERIFICATION_STAGES,
+  getVerificationStatus,
+  setVerificationStatus as saveVerificationStatus,
+  type VerificationStatus,
+} from "@/lib/ownership";
+
+// How long "Verification in Progress" shows before the card moves on.
+const REVIEW_MS = 3000;
 
 export default function DriverDashboard() {
   const navigate = useNavigate();
   const [changeCurrency, setChangeCurrency] = useState(true);
-  const [verificationStatus, setVerificationStatus] = useState<
-    "not_started" | "in_progress" | "approved"
-  >("not_started");
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>(getVerificationStatus);
 
   // State to control the modals
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false); // State for the overlay menu
 
-  useEffect(() => {
-    const status = localStorage.getItem("verificationStatus") as
-      | "not_started"
-      | "in_progress"
-      | "approved";
+  const updateVerificationStatus = (status: VerificationStatus) => {
+    saveVerificationStatus(status);
+    setVerificationStatus(status);
+  };
 
-    if (status) {
-      setVerificationStatus(status);
-    }
-  }, []);
+  // Mock review: once KYC is submitted, approve it after a short beat so the
+  // card can move on to "Own a 3rike".
+  useEffect(() => {
+    if (verificationStatus !== "in_progress") return;
+    const timer = setTimeout(() => {
+      saveVerificationStatus("approved");
+      setVerificationStatus("approved");
+    }, REVIEW_MS);
+    return () => clearTimeout(timer);
+  }, [verificationStatus]);
 
   const handleLoan = () => {
     navigate('/driver/loan')
@@ -49,6 +61,14 @@ export default function DriverDashboard() {
     navigate('/driver/investment')
   };
   const handleVerification = () => {
+    if (verificationStatus === "approved") {
+      navigate('/driver/own-3rike')
+      return;
+    }
+    if (verificationStatus === "3riker") {
+      navigate('/driver/3rike-details')
+      return;
+    }
     navigate('/driver/verification')
   };
   const handle3rikeAi = () => {
@@ -160,56 +180,140 @@ export default function DriverDashboard() {
             </div>
           </div>
 
-          {/* to simulate approval */}
+          {/* to simulate the KYC card stages */}
           <button
             type="button"
-            onClick={() => setVerificationStatus("approved")}
+            onClick={() =>
+              updateVerificationStatus(
+                VERIFICATION_STAGES[(VERIFICATION_STAGES.indexOf(verificationStatus) + 1) % VERIFICATION_STAGES.length]
+              )
+            }
             className="ml-2 text-xs text-[#1B8036] underline hover:[#1B8036] bg-transparent border-none cursor-pointer"
           >
-            (Simulate Approval)
+            (Simulate next step)
           </button>
-          {/* 3. VERIFICATION BANNER */}
-          <div onClick={handleVerification} className="relative w-full bg-[#1B8036] rounded-2xl p-5 overflow-hidden text-white flex items-center justify-between">
-
-            {/* Abstract Background Pattern (Simulated with SVG) */}
-            <img
-              src="/verification-banner.svg"
-              alt="Card Background"
-              className="absolute inset-0 w-full h-full bg-[#1E8A32] object-cover z-0"
-            />
-
-            <div className="relative z-10">
-              <div className="w-5 h-5 bg-white/20 rounded-lg flex items-center justify-center mb-2 backdrop-blur-md">
-                {/* Icon simulating the scooter/delivery icon */}
+          {/* 3. VERIFICATION BANNER: KYC → in progress → own a 3rike → my future 3rike */}
+          <div key={verificationStatus} className="animate-in fade-in zoom-in-95 duration-500">
+            {verificationStatus === "3riker" ? (
+              <div
+                onClick={handleVerification}
+                className="relative w-full min-h-28 rounded-2xl px-4 py-3 overflow-hidden text-white flex items-center justify-between cursor-pointer"
+              >
                 <img
-                  src="/verification-bike.svg"
-                  alt="Card Background"
-                  className="absolute inset-0 w-full h-full  object-cover z-0"
+                  src="/future-3rike.svg"
+                  alt=""
+                  className="absolute inset-0 w-full h-full bg-[#1E8A32] object-cover z-0"
+                />
+                <div className="relative z-10 max-w-[62%]">
+                  <div className="w-5 h-5 bg-white/20 rounded-lg flex items-center justify-center mb-2 backdrop-blur-md">
+                    <img
+                      src="/verification-bike.svg"
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover z-0"
+                    />
+                  </div>
+                  <h3 className="font-bold text-[15px] leading-tight">My future 3rike</h3>
+                  <p className="text-[12px] text-white/90 mt-0.5 leading-snug">
+                    Contribute your weekly fees and check out specs.{" "}
+                    <span className="inline-flex items-center gap-1 text-[#D5FF19] font-medium">
+                      Click here
+                      <img src="/arrows_right_line.svg" alt="" className="w-4 h-4" />
+                    </span>
+                  </p>
+                </div>
+                <img
+                  src="/future-33rike.svg"
+                  alt="Your 3rike"
+                  className="relative z-10 w-[120px] shrink-0 -mr-2 animate-float"
                 />
               </div>
-
-              <h3 className="font-bold text-lg leading-tight">
-                {verificationStatus === "not_started" && "Start Verification"}
-                {verificationStatus === "in_progress" && "Verification in Progress"}
-                {verificationStatus === "approved" && "Own a 3rike"}
-              </h3>
-
-              <p className="text-sm text-white mt-0.5">
-                {verificationStatus === "not_started" && "Complete Kyc and be eligible."}
-                {verificationStatus === "in_progress" && "Details received. We’ll be in touch soon."}
-                {verificationStatus === "approved" && "Register and own a 3rike"}
-              </p>
-            </div>
-
-            <div className="absolute bottom-4 right-4 z-10 w-8 h-8 bg-[#00C258] rounded-full flex items-center justify-center shadow-lg">
-              <Button variant="link">
+            ) : verificationStatus === "approved" ? (
+              // The 3rike out on the road: approved and ready to own one
+              <div
+                onClick={handleVerification}
+                className="relative w-full min-h-28 bg-[#1B8036] rounded-2xl p-5 overflow-hidden text-white flex items-center justify-between cursor-pointer"
+              >
                 <img
-                  src="/arrow-right.svg"
-                  alt="Card Background"
-                  className="absolute inset-0 w-full h-full  object-cover z-0"
+                  src="/onboarding-road.jpg"
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover z-0 animate-road-pan"
                 />
-              </Button>
-            </div>
+                <div className="absolute inset-0 z-0 bg-linear-to-r from-[#0F4A1E] via-[#0F4A1E]/75 to-transparent" />
+
+                <div className="relative z-10 pr-10">
+                  <div className="w-5 h-5 bg-white/20 rounded-lg flex items-center justify-center mb-2 backdrop-blur-md">
+                    <img
+                      src="/verification-bike.svg"
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover z-0"
+                    />
+                  </div>
+                  <h3 className="font-bold text-lg leading-tight">Own a 3rike</h3>
+                  <p className="text-sm text-white mt-0.5">You're approved. Continue to get your 3rike</p>
+                </div>
+
+                <div className="absolute bottom-4 right-4 z-10 w-8 h-8 bg-[#00C258] rounded-full flex items-center justify-center shadow-lg">
+                  <Button variant="link">
+                    <img
+                      src="/arrow-right.svg"
+                      alt=""
+                      className="absolute inset-0 w-full h-full  object-cover z-0"
+                    />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div onClick={handleVerification} className="relative w-full bg-[#1B8036] rounded-2xl p-5 overflow-hidden text-white flex items-center justify-between cursor-pointer">
+
+                {/* Abstract Background Pattern (Simulated with SVG) */}
+                <img
+                  src="/verification-banner.svg"
+                  alt="Card Background"
+                  className="absolute inset-0 w-full h-full bg-[#1E8A32] object-cover z-0"
+                />
+
+                <div className="relative z-10">
+                  <div className="w-5 h-5 bg-white/20 rounded-lg flex items-center justify-center mb-2 backdrop-blur-md">
+                    {/* Icon simulating the scooter/delivery icon */}
+                    <img
+                      src="/verification-bike.svg"
+                      alt="Card Background"
+                      className="absolute inset-0 w-full h-full  object-cover z-0"
+                    />
+                  </div>
+
+                  <h3 className="font-bold text-lg leading-tight">
+                    {verificationStatus === "not_started" && "Start Verification"}
+                    {verificationStatus === "in_progress" && "Verification in Progress"}
+                  </h3>
+
+                  <p className="text-sm text-white mt-0.5">
+                    {verificationStatus === "not_started" && "Complete Kyc and be eligible."}
+                    {verificationStatus === "in_progress" && "Details received. We’ll be in touch soon."}
+                  </p>
+                </div>
+
+                <div className="absolute bottom-4 right-4 z-10 w-8 h-8 bg-[#00C258] rounded-full flex items-center justify-center shadow-lg">
+                  <Button variant="link">
+                    <img
+                      src="/arrow-right.svg"
+                      alt="Card Background"
+                      className="absolute inset-0 w-full h-full  object-cover z-0"
+                    />
+                  </Button>
+                </div>
+
+                {/* Review progress */}
+                {verificationStatus === "in_progress" && (
+                  <span className="absolute inset-x-0 bottom-0 z-10 h-1 bg-white/20">
+                    <span
+                      className="absolute inset-0 origin-left bg-[#D5FF19]"
+                      style={{ animation: `step-progress ${REVIEW_MS}ms linear forwards` }}
+                    />
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* 4. BOTTOM GRID MENU */}

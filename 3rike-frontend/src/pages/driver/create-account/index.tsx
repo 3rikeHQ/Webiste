@@ -115,8 +115,8 @@ export default function CreateAccountForm() {
 
 
     return (
-        <div className="fixed inset-0 overflow-y-auto bg-opacity-50 flex md:items-center justify-center">
-            <div className="bg-white sm:h-screen md:h-auto md:rounded-xl md:shadow-xl w-full max-w-xl p-6">
+        <div className="fixed inset-0 overflow-y-auto bg-opacity-50 flex justify-center">
+            <div className="bg-white w-full p-6">
                 {/* Back Button */}
 
 

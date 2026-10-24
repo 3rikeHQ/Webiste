@@ -2,35 +2,44 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
+const SLIDE_MS = 4500;
+
 const onboardingData = [
     {
-        image: "/onboarding1.svg",
+        image: "/onboarding-road.jpg",
         title: "Own a 3rike",
         description: "Get approved under 24hrs and own a bike.",
-        color: "bg-[#BBE6C3]",
+        fullBleed: true,
     },
     {
         image: "/onboarding2.svg",
         title: "Savings",
-        description: "Save smarter and reach your financial goals with Target Savings and 3rikky Lock Savings.",
-        color: "bg-[#7BCD8A]",
+        description: "Save towards your goals with Target Savings and 3triky Lock.",
+        fullBleed: false,
     },
     {
         image: "/onboarding3.svg",
         title: "Loans",
-        description: "Grow your credit score and get loans up to GHS 16,000 with easy, flexible repayment.",
-        color: "bg-[#BBE6C3]",
+        description: "Get loans with flexible repayment.",
+        fullBleed: false,
     },
     {
         image: "/onboarding4.svg",
-        title: "Retail Investment",
-        description: "Become a 3rike owner with just GHS 600 and start earning weekly.",
-        color: "bg-[#7BCD8A]",
+        title: "Investment",
+        description: "Own a 3rike with little as $50/Ghs 600.",
+        fullBleed: false,
     },
 ];
 
+// Slides cross-fade rather than slide: the incoming art settles in from a
+// slight zoom and blur while the outgoing one drifts forward and fades.
+const EASE = "cubic-bezier(0.22, 1, 0.36, 1)";
+
 export default function Onboarding() {
     const [currentScreen, setCurrentScreen] = useState(-1);
+    // Bumped on every change so the progress bar restarts even on the same slide.
+    const [cycle, setCycle] = useState(0);
+    const [holding, setHolding] = useState(false);
     const navigate = useNavigate();
     const touchStartX = useRef<number | null>(null);
 
@@ -41,23 +50,30 @@ export default function Onboarding() {
         return () => clearTimeout(timer);
     }, []);
 
+    const goTo = (index: number) => {
+        setCurrentScreen((index + onboardingData.length) % onboardingData.length);
+        setCycle((c) => c + 1);
+    };
+
     const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
         touchStartX.current = e.touches[0].clientX;
+        setHolding(true);
     };
 
     const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+        setHolding(false);
         if (touchStartX.current === null) return;
 
         const touchEndX = e.changedTouches[0].clientX;
         const diff = touchStartX.current - touchEndX;
 
         // swipe threshold
-        if (diff > 50 && currentScreen < onboardingData.length - 1) {
+        if (diff > 50) {
             // swipe left → next
-            setCurrentScreen((prev) => prev + 1);
-        } else if (diff < -50 && currentScreen > 0) {
+            goTo(currentScreen + 1);
+        } else if (diff < -50) {
             // swipe right → previous
-            setCurrentScreen((prev) => prev - 1);
+            goTo(currentScreen - 1);
         }
 
         touchStartX.current = null;
@@ -67,7 +83,7 @@ export default function Onboarding() {
     if (currentScreen === -1) {
         return (
             <div className="fixed inset-0 w-full h-dvh flex items-center justify-center bg-white">
-                <img src="/logo.svg" alt="empty" className="w-60 h-60" />
+                <img src="/logo.svg" alt="3rike" className="w-60 h-60 animate-in fade-in zoom-in-90 duration-700" />
             </div>
         );
     }
@@ -76,38 +92,101 @@ export default function Onboarding() {
 
     return (
         <div
-            className="fixed inset-0 w-full bg-black flex flex-col overflow-hidden"
+            className="fixed inset-0 w-full bg-black flex flex-col overflow-hidden animate-in fade-in duration-500"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
+            onTouchCancel={() => setHolding(false)}
         >
-            {/* Full Screen Background Wrapper */}
-            <div className="absolute inset-0 z-0 w-full h-full bg-black bg-[radial-gradient(circle_at_top_center,var(--tw-gradient-stops))] from-[#01C259]/30 via-black to-black flex items-center justify-center">
+            {/* Every slide stays mounted so the images are loaded before their turn */}
+            {onboardingData.map((slide, i) => {
+                const isActive = i === currentScreen;
+                return (
+                    <div
+                        key={slide.title}
+                        aria-hidden={!isActive}
+                        className="absolute inset-0 z-0 overflow-hidden"
+                        style={{
+                            opacity: isActive ? 1 : 0,
+                            transition: `opacity 900ms ${EASE}`,
+                        }}
+                    >
+                        {slide.fullBleed ? (
+                            <>
+                                <img
+                                    src={slide.image}
+                                    alt=""
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                    style={{
+                                        // Slow push-in while the slide is on screen; reset once it has faded out.
+                                        transform: isActive ? "scale(1.12)" : "scale(1)",
+                                        transition: isActive
+                                            ? `transform ${SLIDE_MS + 900}ms linear`
+                                            : "transform 0ms linear 900ms",
+                                    }}
+                                />
+                                <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-black/10" />
+                            </>
+                        ) : (
+                            <div className="absolute inset-0 bg-[linear-gradient(165deg,#2F6E3B_0%,#0E2B14_32%,#000_58%)] flex items-start justify-center pt-[14vh]">
+                                <div
+                                    className="w-[78%] max-w-90"
+                                    style={{
+                                        opacity: isActive ? 1 : 0,
+                                        transform: isActive ? "none" : "translateY(24px) scale(0.86)",
+                                        filter: isActive ? "blur(0)" : "blur(10px)",
+                                        transition: `opacity 900ms ${EASE}, transform 1100ms ${EASE}, filter 900ms ${EASE}`,
+                                    }}
+                                >
+                                    <img
+                                        src={slide.image}
+                                        alt=""
+                                        className="w-full h-auto max-h-[46vh] object-contain animate-float"
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
 
-                {/* Background Image: Conditionally style based on the current index */}
-                <img
-                    src={screenData.image}
-                    alt={screenData.title}
-                    className={
-                        currentScreen === 0
-                            ? "w-full h-full object-cover" // Spans the entire screen for the first index
-                            : "w-60 md:w-full md:h-full object-contain -translate-y-20 md:-translate-y-18" // Constrained and translated for the rest
-                    }
-                />
-
-                {/* Dark gradient overlay to make bottom text readable */}
-                <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-[#01C259]/40 pointer-events-none"></div>
+            {/* Progress segments: tap one to jump to it */}
+            <div className="relative z-10 w-full max-w-md mx-auto flex gap-1.5 px-6 pt-[max(1rem,env(safe-area-inset-top))]">
+                {onboardingData.map((slide, i) => (
+                    <button
+                        key={slide.title}
+                        type="button"
+                        aria-label={`Show ${slide.title}`}
+                        aria-current={i === currentScreen ? "step" : undefined}
+                        onClick={() => goTo(i)}
+                        className="relative flex-1 h-5 cursor-pointer bg-transparent border-none p-0"
+                    >
+                        <span className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[3px] rounded-full bg-white/25 overflow-hidden">
+                            {i < currentScreen && <span className="absolute inset-0 bg-white" />}
+                            {i === currentScreen && (
+                                <span
+                                    key={cycle}
+                                    onAnimationEnd={() => goTo(currentScreen + 1)}
+                                    className="absolute inset-0 origin-left bg-white"
+                                    style={{
+                                        animation: `step-progress ${SLIDE_MS}ms linear forwards`,
+                                        animationPlayState: holding ? "paused" : "running",
+                                    }}
+                                />
+                            )}
+                        </span>
+                    </button>
+                ))}
             </div>
 
             {/* Bottom Content Area */}
-            {/* Added max-w-md and mx-auto so the content is responsive and centered beautifully on tablets/desktops */}
-            <div className="relative z-10 mt-auto px-6 pb-8 md:pb-12 w-full max-w-md mx-auto flex flex-col justify-end h-full">
+            <div className="relative z-10 mt-auto px-6 pb-8 w-full max-w-md mx-auto flex flex-col justify-end">
 
-                {/* Text Block */}
-                <div className="mb-8 text-center md:text-left">
-                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 leading-tight tracking-tight">
+                {/* Text Block: remounts per slide so it rises in each time */}
+                <div key={currentScreen} className="mb-8 text-left" aria-live="polite">
+                    <h1 className="animate-rise-in text-[2.6rem] font-bold text-white mb-2 leading-tight tracking-tight">
                         {screenData.title}
                     </h1>
-                    <p className="text-gray-300 text-sm md:text-base pr-2 md:pr-4">
+                    <p className="animate-rise-in text-gray-200 text-sm pr-2 [animation-delay:120ms]">
                         {screenData.description}
                     </p>
                 </div>

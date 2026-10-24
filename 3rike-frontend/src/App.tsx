@@ -1,7 +1,8 @@
 import "./App.css";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import Layout from "@/components/ui/layout";
-import { CreateAccountForm, ForgotPasswordEmailForm, ForgotPasswordPhoneForm, Landing, LoginForm, NoMatch, Onboarding, DriverDashboard, VerifyAccountForm, VerificationSuccess, VerificationFailed, VerificationFailedForm, LoanDashboard, LoanRequestSuccess, LoanNotification, SavingsOnboarding, SavingsDashboard, Loan, Savings, Verification, SavingsTargetDashboard, SavingsTargetForm, SavingsSummary, SavingsNotification, SavingsTargetSuccess, AiDashboard, DriverNotification, Withdraw, SetPinWithdraw, WithdrawBankDetails, WithdrawSendMoney, Settings, SettingsHome, SettingsProfile, PaymentSettings, ChangePaymentPin, WithdrawCryptoAsset, Investment, InvestmentHome, InvestorWaitlist, InvestorBrief } from "./pages";
+import MobileLayout from "@/components/ui/mobile-layout";
+import { CreateAccountForm, ForgotPasswordEmailForm, ForgotPasswordPhoneForm, Landing, LoginForm, NoMatch, Onboarding, DriverDashboard, VerifyAccountForm, VerificationSuccess, VerificationFailed, VerificationFailedForm, LoanDashboard, LoanRequestSuccess, LoanNotification, SavingsOnboarding, SavingsDashboard, Loan, Savings, Verification, SavingsTargetDashboard, SavingsTargetForm, SavingsSummary, SavingsNotification, SavingsTargetSuccess, AiDashboard, DriverNotification, Withdraw, SetPinWithdraw, WithdrawBankDetails, WithdrawSendMoney, Settings, SettingsHome, SettingsProfile, PaymentSettings, ChangePaymentPin, WithdrawCryptoAsset, Investment, InvestmentHome, InvestorWaitlist, InvestorBrief, Own3rike, Own3rikeDetails, Welcome3riker, ThreeDetails } from "./pages";
 import SelectCryptoAsset from "./pages/driver/withdraw/crypto/select-crypto";
 
 
@@ -11,12 +12,7 @@ function App() {
       <div style={{ fontFamily: "Geist" }}>
         <Routes>
 
-          {/* auth */}
-          <Route path="/create-account-rider" element={<CreateAccountForm />} />
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/forgot-password-phone" element={<ForgotPasswordPhoneForm />} />
-          <Route path="/forgot-password-email" element={<ForgotPasswordEmailForm />} />
-          <Route path="/onboarding" element={<Onboarding />} />
+          {/* Marketing pages keep their desktop layouts */}
           <Route path="/waitlist" element={<InvestorWaitlist />} />
           <Route path="/investor-brief" element={<InvestorBrief />} />
 
@@ -24,6 +20,16 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Landing />} />
           </Route>
+
+          {/* The app: every screen is a phone, even on desktop */}
+          <Route element={<MobileLayout />}>
+
+          {/* auth */}
+          <Route path="/create-account-rider" element={<CreateAccountForm />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/forgot-password-phone" element={<ForgotPasswordPhoneForm />} />
+          <Route path="/forgot-password-email" element={<ForgotPasswordEmailForm />} />
+          <Route path="/onboarding" element={<Onboarding />} />
 
           {/* Driver */}
           <Route path="/driver">
@@ -70,6 +76,13 @@ function App() {
               <Route index element={<InvestmentHome />} />
             </Route>
 
+            {/* Own a 3rike routes */}
+            <Route path="own-3rike" element={<Own3rike />}>
+              <Route index element={<Own3rikeDetails />} />
+              <Route path="welcome" element={<Welcome3riker />} />
+            </Route>
+            <Route path="3rike-details" element={<ThreeDetails />} />
+
             {/* Settings route */}
             <Route path="settings" element={<Settings />}>
               <Route index element={<SettingsHome />} />
@@ -79,6 +92,8 @@ function App() {
             </Route>
 
             <Route path="*" element={<NoMatch />} />
+          </Route>
+
           </Route>
 
 
