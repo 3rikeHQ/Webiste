@@ -18,6 +18,7 @@ import {
     User,
     Landmark,
 } from "lucide-react";
+import { withdraw } from "@/lib/api";
 
 // --- Zod Schemas ---
 const recipientSchema = z.object({
@@ -44,6 +45,7 @@ export default function WithdrawSendMoney() {
 
     // PIN State
     const [pin, setPin] = useState("");
+    const [transferError, setTransferError] = useState<string | null>(null);
 
     // --- Mock Linked Data ---
     const [linkedAccount] = useState({
@@ -115,20 +117,26 @@ export default function WithdrawSendMoney() {
     };
 
     // --- Logic: Final Submission ---
-    const handleFinalSubmit = (finalPin: string) => {
-        const payload = {
-            recipientAccount: recipientForm.getValues("accountNumber"),
-            recipientName: recipientData?.name,
-            recipientBank: recipientData?.bank,
-            amount: transferData?.amount,
-            remark: transferData?.remark,
-            pin: finalPin,
-            timestamp: new Date().toISOString()
-        };
-        console.log("FINAL FORM SUBMISSION PAYLOAD:", payload);
-        setTimeout(() => {
+    const handleFinalSubmit = async (finalPin: string) => {
+        const accountNumber = recipientForm.getValues("accountNumber") || linkedAccount.accountNumber;
+        const bankName = recipientData?.bank || linkedAccount.bankName;
+        const accountName = recipientData?.name || linkedAccount.accountName;
+        const amountValue = Number(transferData?.amount || "0");
+
+        setTransferError(null);
+        try {
+            await withdraw({
+                amount: amountValue,
+                method: "bank",
+                destination: { accountNumber, bankName, accountName },
+                pin: finalPin,
+            });
             setStep('success');
-        }, 300);
+        } catch (e) {
+            setPin("");
+            setStep('confirm');
+            setTransferError(e instanceof Error ? e.message : "Withdrawal failed");
+        }
     };
 
     // --- Logic: Step 4 (PIN Keypad) ---
@@ -502,6 +510,10 @@ export default function WithdrawSendMoney() {
                                 )}
                             </div>
                         </div>
+
+                        {transferError && (
+                            <p className="text-sm text-[#EC1111] mb-3 text-center" role="alert">{transferError}</p>
+                        )}
 
                         <Button
                             onClick={() => hasFunds && setStep('pin')}

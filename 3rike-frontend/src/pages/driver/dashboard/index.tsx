@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { getBalance } from "@/lib/api";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowUpRight,
@@ -25,6 +26,7 @@ export default function DriverDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
   const [changeCurrency, setChangeCurrency] = useState(true);
+  const [balance, setBalance] = useState(0);
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>(getVerificationStatus);
   // Sent here from a 3rike page while KYC is still under review
   const [isKycSheetOpen, setIsKycSheetOpen] = useState(
@@ -40,6 +42,29 @@ export default function DriverDashboard() {
     saveVerificationStatus(status);
     setVerificationStatus(status);
   };
+
+  const loadBalance = async () => {
+    try {
+      const res = await getBalance();
+      setBalance(res.balance);
+    } catch {
+      setBalance(0);
+    }
+  };
+
+  useEffect(() => {
+    let active = true;
+    getBalance()
+      .then((res) => {
+        if (active) setBalance(res.balance);
+      })
+      .catch(() => {
+        if (active) setBalance(0);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const closeKycSheet = () => {
     setIsKycSheetOpen(false);
@@ -123,7 +148,7 @@ export default function DriverDashboard() {
 
               <div className="flex flex-row justify-between mb-6">
                 <h1 className="text-4xl font-bold ">
-                  {changeCurrency ? "$ 0.00" : "₦ 0.00"}
+                  {changeCurrency ? `$ ${balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "₦ 0.00"}
                 </h1>
 
                 {/* Custom Toggle Switch */}
@@ -461,12 +486,13 @@ export default function DriverDashboard() {
       <DepositModal
         isOpen={isDepositOpen}
         onClose={() => setIsDepositOpen(false)}
+        onDeposited={loadBalance}
       />
 
       {/* Withdraw modal */}
       <WithdrawOptions
         isOpen={isWithdrawOpen}
-        onClose={() => setIsWithdrawOpen(false)}
+        onClose={() => { setIsWithdrawOpen(false); loadBalance(); }}
       />
 
       {isKycSheetOpen && (

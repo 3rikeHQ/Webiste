@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { X, ArrowLeft } from "lucide-react"; 
 import { PinInput } from "@/components/ui/pinInput";
 import { Button } from "@/components/ui/button";
+import { setWithdrawalPin } from "@/lib/api";
 
 const formSchema = z.object({
     pin: z
@@ -49,8 +50,15 @@ export default function SetPinWithdraw() {
             }
             
             // Success Logic
-            console.log("PIN Set Successfully:", data.pin);
-            navigate("/driver/withdraw/bank-details"); // Navigate to the next page
+            try {
+                await setWithdrawalPin(data.pin);
+                navigate("/driver/withdraw/bank-details"); // Navigate to the next page
+            } catch (e) {
+                form.setError("pin", {
+                    type: "manual",
+                    message: e instanceof Error ? e.message : "Could not save PIN",
+                });
+            }
         }
     };
 

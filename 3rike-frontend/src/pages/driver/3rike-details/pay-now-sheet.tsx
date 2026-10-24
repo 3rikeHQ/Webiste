@@ -12,7 +12,7 @@ type PayNowSheetProps = {
   balance: number;
   onClose: () => void;
   // Debits the main account; throws if the payment can't go through.
-  onPay: (amount: number) => void;
+  onPay: (amount: number) => Promise<void>;
 };
 
 export default function PayNowSheet({ balance, onClose, onPay }: PayNowSheetProps) {
@@ -31,9 +31,9 @@ export default function PayNowSheet({ balance, onClose, onPay }: PayNowSheetProp
 
   const confirm = () => {
     setStep("processing");
-    window.setTimeout(() => {
+    window.setTimeout(async () => {
       try {
-        onPay(amount);
+        await onPay(amount);
         setStep("done");
       } catch {
         setFailed(true);

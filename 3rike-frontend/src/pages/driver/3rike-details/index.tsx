@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,17 +6,12 @@ import {
   MAX_SCORE,
   formatShortDate,
   formatUsd,
-  getAutoPay,
-  getMainBalance,
-  getPayments,
-  getScore,
   nextDebitDate,
-  payTowards3rike,
-  saveAutoPay,
-  setScore,
   WEEKLY_PAYMENT,
   type AutoPay,
+  type Weekday,
 } from "@/lib/ownership";
+import { me, listPayments, payNow, saveAutoPay, clearAutoPay, type Payment } from "@/lib/api";
 import PayNowSheet from "./pay-now-sheet";
 import AutoPaySheet from "./auto-pay-sheet";
 
@@ -38,10 +33,10 @@ type Toast = { id: number; text: string; tone: "ok" | "error" };
 
 export default function ThreeDetails() {
   const navigate = useNavigate();
-  const [score, setScoreState] = useState(getScore);
-  const [balance, setBalance] = useState(getMainBalance);
-  const [payments, setPayments] = useState(getPayments);
-  const [autoPay, setAutoPay] = useState(getAutoPay);
+  const [score, setScoreState] = useState(0);
+  const [balance, setBalance] = useState(0);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [autoPay, setAutoPay] = useState<AutoPay | null>(null);
   const [sheet, setSheet] = useState<"pay" | "autopay" | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
 
@@ -50,11 +45,50 @@ export default function ThreeDetails() {
   const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
   const eligibleForLoan = score >= 400;
 
-  const refresh = () => {
-    setScoreState(getScore());
-    setBalance(getMainBalance());
-    setPayments(getPayments());
+  const refresh = async () => {
+    try {
+      const [session, pays] = await Promise.all([me(), listPayments()]);
+      setScoreState(session.user.score);
+      setBalance(session.balance);
+      setAutoPay(
+        session.autopay
+          ? { amount: session.autopay.amount, day: session.autopay.weekday as Weekday }
+          : null
+      );
+      setPayments(pays.payments);
+    } catch {
+      setScoreState(0);
+      setBalance(0);
+      setPayments([]);
+      setAutoPay(null);
+    }
   };
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([me(), listPayments()])
+      .then(([session, pays]) => {
+        if (!active) return;
+        setScoreState(session.user.score);
+        setBalance(session.balance);
+        setAutoPay(
+          session.autopay
+            ? { amount: session.autopay.amount, day: session.autopay.weekday as Weekday }
+            : null
+        );
+        setPayments(pays.payments);
+      })
+      .catch(() => {
+        if (!active) return;
+        setScoreState(0);
+        setBalance(0);
+        setPayments([]);
+        setAutoPay(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const showToast = (text: string, tone: Toast["tone"] = "ok") => {
     const id = Date.now();
@@ -62,32 +96,19 @@ export default function ThreeDetails() {
     window.setTimeout(() => setToast((t) => (t?.id === id ? null : t)), 2600);
   };
 
-  const handlePay = (amount: number) => {
-    payTowards3rike(amount, "manual");
-    refresh();
+  const handlePay = async (amount: number) => {
+    await payNow(amount);
+    await refresh();
   };
 
-  const handleSaveAutoPay = (next: AutoPay | null) => {
-    saveAutoPay(next);
-    setAutoPay(next);
-    if (!next) showToast("Auto-Pay turned off");
-  };
-
-  // dev helpers
-  const bumpScore = () => {
-    const next = score >= 700 ? 200 : score + 100;
-    setScore(next);
-    setScoreState(next);
-  };
-
-  const simulateAutoDebit = () => {
-    if (!autoPay) return;
+  const handleSaveAutoPay = async (next: AutoPay | null) => {
     try {
-      payTowards3rike(autoPay.amount, "auto");
-      refresh();
-      showToast(`Auto-Pay: ${formatUsd(autoPay.amount)} paid`);
-    } catch {
-      showToast("Auto-Pay failed. Top up your main account.", "error");
+      if (next) await saveAutoPay(next.amount, next.day);
+      else await clearAutoPay();
+      setAutoPay(next);
+      if (!next) showToast("Auto-Pay turned off");
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Couldn't update Auto-Pay", "error");
     }
   };
 
@@ -229,34 +250,14 @@ export default function ThreeDetails() {
             {payments.slice(0, 4).map((p) => (
               <li key={p.id} className="flex items-center justify-between py-3 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div>
-                  <p className="text-sm text-gray-800">{p.source === "auto" ? "Auto-Pay" : "Pay Now"}</p>
-                  <p className="text-xs text-[#909090]">{formatShortDate(p.date)} · Main account</p>
+                  <p className="text-sm text-gray-800">{p.type === "autopay" ? "Auto-Pay" : "Pay Now"}</p>
+                  <p className="text-xs text-[#909090]">{formatShortDate(p.createdAt)} · Main account</p>
                 </div>
                 <p className="text-sm font-semibold text-[#01C259]">{formatUsd(p.amount)}</p>
               </li>
             ))}
           </ul>
         )}
-
-        {/* dev helpers */}
-        <div className="mt-6 flex flex-wrap gap-x-4">
-          <button
-            type="button"
-            onClick={bumpScore}
-            className="text-xs text-[#1B8036] underline bg-transparent border-none cursor-pointer"
-          >
-            (Simulate Progress: +100)
-          </button>
-          {autoPay && (
-            <button
-              type="button"
-              onClick={simulateAutoDebit}
-              className="text-xs text-[#1B8036] underline bg-transparent border-none cursor-pointer"
-            >
-              (Simulate Auto-Pay debit)
-            </button>
-          )}
-        </div>
 
         {toast && (
           <div

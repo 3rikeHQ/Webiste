@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronDown, ArrowUpDown, Pencil, Wallet } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { withdraw } from "@/lib/api";
 
 // --- Types ---
 // Added 'confirm' step to the flow
@@ -18,6 +19,8 @@ export default function WithdrawCryptoAsset() {
     const [address, setAddress] = useState("");
     const [amount, setAmount] = useState("0");
     const [isProcessing, setIsProcessing] = useState(false);
+    const [pin, setPin] = useState("");
+    const [sendError, setSendError] = useState<string | null>(null);
 
     // Default to 'solana' if no state is found
     const chainType: ChainType = location.state?.chain || 'solana';
@@ -65,13 +68,26 @@ export default function WithdrawCryptoAsset() {
     };
 
     // --- Processing Logic ---
-    const handleTransfer = () => {
+    const handleTransfer = async () => {
+        if (!/^\d{4}$/.test(pin)) {
+            setSendError("Enter your 4-digit withdrawal PIN.");
+            return;
+        }
         setIsProcessing(true);
-        // Simulate network request
-        setTimeout(() => {
-            setIsProcessing(false);
+        setSendError(null);
+        try {
+            await withdraw({
+                amount: Number(amount),
+                method: "crypto",
+                destination: { address },
+                pin,
+            });
             setStep('success');
-        }, 2000); // 2 seconds processing time
+        } catch (e) {
+            setSendError(e instanceof Error ? e.message : "Withdrawal failed");
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     // --- Render: Step 1 (Address Input) ---
@@ -285,7 +301,23 @@ export default function WithdrawCryptoAsset() {
                 </div>
 
                 {/* Button that LOOKS like Hold to Send, but acts like Normal Click */}
-                <div className="w-full mt-6 mb-4">
+                <div className="w-full mb-4">
+                    <label className="block text-xs text-gray-400 mb-2">Withdrawal PIN</label>
+                    <Input
+                        value={pin}
+                        onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                        type="password"
+                        inputMode="numeric"
+                        placeholder="Enter 4-digit PIN"
+                        className="h-12 bg-[#F9FAFB] border-none shadow-none rounded-xl text-sm placeholder:text-gray-400 focus-visible:ring-1 focus-visible:ring-gray-200"
+                    />
+                </div>
+
+                {sendError && (
+                    <p className="text-sm text-[#EC1111] mb-3" role="alert">{sendError}</p>
+                )}
+
+                <div className="w-full mt-2 mb-4">
                     <Button
                         disabled={isProcessing}
                         onClick={handleTransfer}
