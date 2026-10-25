@@ -41,3 +41,9 @@ CREATE TABLE IF NOT EXISTS autopay_schedules (
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS waitlist_emails (
+  id bigserial PRIMARY KEY,
+  email text NOT NULL UNIQUE,
+  created_at timestamptz NOT NULL DEFAULT now()
+);

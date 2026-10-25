@@ -308,6 +308,32 @@ async function cronAutoPay(ctx) {
   return json({ ok: true, settled, missed });
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function ensureWaitlistTable() {
+  await pool.query(
+    `CREATE TABLE IF NOT EXISTS waitlist_emails (
+       id bigserial PRIMARY KEY,
+       email text NOT NULL UNIQUE,
+       created_at timestamptz NOT NULL DEFAULT now()
+     )`
+  );
+}
+
+async function subscribeWaitlist(ctx) {
+  const { email } = ctx.body || {};
+  require(email && typeof email === "string", "Email is required");
+  const normalized = email.trim().toLowerCase();
+  require(EMAIL_RE.test(normalized), "Enter a valid email address");
+  await ensureWaitlistTable();
+  await pool.query(
+    `INSERT INTO waitlist_emails (email) VALUES ($1)
+     ON CONFLICT (email) DO NOTHING`,
+    [normalized]
+  );
+  return json({ ok: true });
+}
+
 async function health() {
   let db = "up";
   try {
@@ -344,6 +370,7 @@ async function paycrestWebhook(ctx) {
 const ROUTES = {
   "POST /api/auth/register": register,
   "POST /api/auth/login": login,
+  "POST /api/waitlist": subscribeWaitlist,
   "GET /api/me": me,
   "POST /api/me/pin": setPin,
   "GET /api/verification": getVerification,

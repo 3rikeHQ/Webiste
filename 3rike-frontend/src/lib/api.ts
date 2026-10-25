@@ -150,3 +150,7 @@ export function saveAutoPay(amount: number, weekday: string) {
 export function clearAutoPay() {
   return request<{ autopay: null }>("/api/autopay", { method: "DELETE" });
 }
+
+export function subscribeWaitlist(email: string) {
+  return request<{ ok: boolean }>("/api/waitlist", { body: { email } });
+}
