@@ -64,12 +64,6 @@ export default function App() {
               className="h-12 md:h-16 w-auto object-contain"
             />
           </a>
-          <a
-            href="https://www.3rike.com"
-            className="hidden lg:block bg-[#829E04] text-white text-lg font-medium px-8 py-3 cursor-pointer hover:bg-[#6f8703] transition-colors"
-          >
-            Back to 3rike
-          </a>
         </div>
       </div>
 
@@ -115,12 +109,6 @@ export default function App() {
             <p className="text-[#666666] text-base md:text-lg mt-4 max-w-md mx-auto leading-relaxed">
               Thanks for joining. We'll be in touch soon{joined ? ` at ${joined}` : ""}.
             </p>
-            <a
-              href="https://www.3rike.com"
-              className="inline-block mt-8 text-[#829E04] text-base md:text-lg font-medium hover:text-[#6f8703] transition-colors"
-            >
-              Back to 3rike →
-            </a>
           </div>
         ) : (
           <form
