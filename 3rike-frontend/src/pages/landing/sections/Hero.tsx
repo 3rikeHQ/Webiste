@@ -69,7 +69,7 @@ const Hero = () => {
           <form
             onSubmit={handleSubmit}
             noValidate
-            className="mt-8 md:mt-10 flex flex-col sm:flex-row w-full max-w-2xl border border-[#E2F490] rounded-lg overflow-hidden animate-[fade-in_0.8s_ease-out_1s_both]"
+            className="mx-auto mt-8 md:mt-10 flex flex-col sm:flex-row w-full max-w-2xl border border-[#E2F490] rounded-lg overflow-hidden animate-[fade-in_0.8s_ease-out_1s_both]"
           >
             <input
               type="email"
